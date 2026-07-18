@@ -1,0 +1,42 @@
+{
+  "database": "exports/solidworks_drawing_api_2026.sqlite",
+  "database_sha256": "f20e73e5e90f5fcd331fb33ead74fbdbdea10152f49fc39dc3135e64de47f2e5",
+  "database_bytes": 18075648,
+  "built_at": "2026-07-18T08:04:23.711768+00:00",
+  "product_version": "SOLIDWORKS 2026",
+  "language": "English source documentation; English/Persian search aliases and workflow tags",
+  "scope": "Drawing creation and automation with macros/scripts, plus dependencies, enums, examples, commands, and Document Manager inspection.",
+  "validation": {
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "counts": {
+      "source_sets": 6,
+      "source_pages": 4471,
+      "api_types": 192,
+      "api_members": 2405,
+      "api_parameters": 2808,
+      "api_enums": 432,
+      "api_enum_values": 7688,
+      "examples": 1293,
+      "example_calls": 16627,
+      "guide_topics": 149,
+      "workflows": 32,
+      "workflow_steps": 129,
+      "relationships": 6063,
+      "aliases": 51,
+      "coverage": 7,
+      "search_fts": 4554
+    },
+    "missing_required_symbols": [],
+    "query_tests": {
+      "section view": 78,
+      "CreateDrawViewFromModelView3": 9,
+      "BOM table": 119,
+      "خروجی PDF": 1,
+      "نمای برش": 2
+    },
+    "workflow_status": "validated",
+    "workflow_notes": "All declared step and primary symbols resolve to current, non-obsolete API records.",
+    "pass": true
+  }
+}

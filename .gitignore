@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.building
+.venv/
+venv/
+work/
+backups/
+logs/
+
+# Official extracted SOLIDWORKS help sources are local/licensed inputs.
+*.chm
