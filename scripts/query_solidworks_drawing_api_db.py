@@ -18,7 +18,22 @@ def rows_as_dicts(cursor):
     return [dict(row) for row in cursor.fetchall()]
 
 
-def main() -> int:
+def configure_utf8_streams() -> None:
+    """Keep bilingual help and JSON readable on Windows consoles and pipes."""
+
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
+def open_read_only_database(path: Path) -> sqlite3.Connection:
+    uri = path.resolve().as_uri() + "?mode=ro"
+    return sqlite3.connect(uri, uri=True)
+
+
+def main(argv: list[str] | None = None) -> int:
+    configure_utf8_streams()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("query", nargs="*", help="FTS5 query, for example: section view or نمای برش")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
@@ -27,11 +42,12 @@ def main() -> int:
     parser.add_argument("--symbol", help="Exact symbol such as IDrawingDoc::CreateSectionViewAt4")
     parser.add_argument("--workflow", help="Exact workflow slug")
     parser.add_argument("--coverage", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
-    conn = sqlite3.connect(args.db)
+    try:
+        conn = open_read_only_database(args.db)
+    except sqlite3.Error as exc:
+        parser.exit(2, f"error: unable to open database read-only: {exc}\n")
     conn.row_factory = sqlite3.Row
     try:
         if args.coverage:
@@ -67,6 +83,9 @@ def main() -> int:
         else:
             parser.error("provide a query or use --symbol, --workflow, or --coverage")
         print(json.dumps(result, ensure_ascii=False, indent=2))
+    except sqlite3.Error as exc:
+        print(f"error: database query failed: {exc}", file=sys.stderr)
+        return 2
     finally:
         conn.close()
     return 0
