@@ -1,7 +1,17 @@
 # SOLIDWORKS Drawing API Database 2026
 
+[![Validate database release](https://github.com/Erfouni/solidworks-drawing-api-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Erfouni/solidworks-drawing-api-2026/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![SQLite FTS5](https://img.shields.io/badge/SQLite-FTS5-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/fts5.html)
+[![SOLIDWORKS](https://img.shields.io/badge/SOLIDWORKS-2026-E2231A)](https://help.solidworks.com/2026/english/api/)
+[![License: MIT (code)](https://img.shields.io/badge/code_license-MIT-2EA44F)](LICENSE)
+
 This is a normalized, source-traceable SQLite knowledge base for drawing creation
 and automation with SOLIDWORKS macros, scripts, COM add-ins, and Document Manager.
+
+It turns thousands of scattered API symbols, examples, enumerations, and guide
+topics into one offline database that can support precise macro lookup, RAG
+retrieval, MCP tools, engineering assistants, and reproducible automation research.
 
 - Database: [`exports/solidworks_drawing_api_2026.sqlite`](exports/solidworks_drawing_api_2026.sqlite)
 - SHA-256: `f20e73e5e90f5fcd331fb33ead74fbdbdea10152f49fc39dc3135e64de47f2e5`
@@ -23,6 +33,25 @@ python scripts/query_solidworks_drawing_api_db.py --workflow create-section-view
 python scripts/query_solidworks_drawing_api_db.py --coverage
 ```
 
+The query CLI opens the delivered artifact in SQLite read-only mode. It never
+creates or modifies a database while searching.
+
+## From official sources to usable engineering context
+
+```mermaid
+flowchart LR
+    help["SOLIDWORKS 2026 API Help"] --> normalize["Normalize + source-map"]
+    normalize --> sqlite["SQLite knowledge base"]
+    sqlite --> fts["English + Persian FTS5"]
+    fts --> macro["Macro/API lookup"]
+    fts --> rag["RAG and agent context"]
+    fts --> mcp["MCP/CAD automation tools"]
+```
+
+Source-backed entities retain an `official_url`; purely synthetic search aliases
+may intentionally have no URL. The database is designed to help a tool find the
+right primary source—not to replace the official documentation.
+
 ## Contents
 
 - 192 API types/interfaces/event delegates
@@ -37,6 +66,25 @@ python scripts/query_solidworks_drawing_api_db.py --coverage
 
 The database stores compact structured facts and original workflow synthesis, not a
 verbatim offline mirror. Open `official_url` for the complete official page/example.
+
+## Release quality gates
+
+The checked-in database is tested as a release artifact on Python 3.10, 3.12,
+and 3.13. CI verifies:
+
+- the SQLite file SHA-256 and byte size match the manifest;
+- `PRAGMA integrity_check` and foreign-key checks pass;
+- expected API/workflow record counts are present;
+- exact symbol lookup returns a source-traceable result;
+- Persian full-text search works;
+- the CLI renders bilingual help correctly and cannot create a missing database.
+
+Run the same checks locally:
+
+```powershell
+python -m unittest discover -s tests -v
+python -m compileall -q scripts tests
+```
 
 ## Quick search
 
@@ -107,3 +155,8 @@ its subsidiaries. The repository does not redistribute the original CHM files or
 a verbatim documentation mirror; it stores normalized facts, compact summaries,
 search metadata, and source links. Consult the linked official documentation and
 your SOLIDWORKS license terms for authoritative usage requirements.
+
+The MIT license applies to this repository's original source code. See [LICENSE](LICENSE)
+for the data and third-party-material boundary. Contributions are welcome through
+[CONTRIBUTING.md](CONTRIBUTING.md); report security issues according to
+[SECURITY.md](SECURITY.md).

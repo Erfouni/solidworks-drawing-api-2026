@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SOLIDWORKS official API help
+    url: https://help.solidworks.com/2026/english/api/
+    about: Confirm authoritative API behavior in the official documentation.
