@@ -32,10 +32,20 @@ def open_read_only_database(path: Path) -> sqlite3.Connection:
     return sqlite3.connect(uri, uri=True)
 
 
+def literal_fts_query(text: str) -> str:
+    """Quote every term so FTS5 matches it as text, not as query syntax.
+
+    API names are full of FTS5 syntax: "IDrawingDoc::Method" and "section-view"
+    read as column filters, and "C#", "AND" or a stray quote are syntax errors.
+    """
+
+    return " ".join('"' + term.replace('"', '""') + '"' for term in text.split())
+
+
 def main(argv: list[str] | None = None) -> int:
     configure_utf8_streams()
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("query", nargs="*", help="FTS5 query, for example: section view or نمای برش")
+    parser.add_argument("query", nargs="*", help="search text or FTS5 query, for example: section view or نمای برش")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--kind", help="Filter entity_kind (workflow, api_member, example, api_enum, guide_topic)")
     parser.add_argument("--limit", type=int, default=20)
@@ -79,7 +89,15 @@ def main(argv: list[str] | None = None) -> int:
                 values.append(args.kind)
             sql += " ORDER BY rank LIMIT ?"
             values.append(max(1, min(args.limit, 200)))
-            result = rows_as_dicts(conn.execute(sql, values))
+            try:
+                result = rows_as_dicts(conn.execute(sql, values))
+            except sqlite3.OperationalError as exc:
+                values[0] = literal_fts_query(query)
+                result = rows_as_dicts(conn.execute(sql, values))
+                print(
+                    f"note: not valid FTS5 syntax ({exc}); searched for the literal text instead",
+                    file=sys.stderr,
+                )
         else:
             parser.error("provide a query or use --symbol, --workflow, or --coverage")
         print(json.dumps(result, ensure_ascii=False, indent=2))

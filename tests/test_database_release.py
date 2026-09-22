@@ -68,6 +68,30 @@ class DatabaseReleaseTests(unittest.TestCase):
         self.assertGreaterEqual(len(source_urls), 1)
         self.assertTrue(all(url.startswith("https://help.solidworks.com/") for url in source_urls))
 
+    def test_api_symbol_typed_as_search_text_finds_the_member(self) -> None:
+        # FTS5 reads "IDrawingDoc:" as a column filter, so this used to fail
+        # with "no such column: IDrawingDoc" instead of finding the member.
+        completed = run_query("IDrawingDoc::CreateSectionViewAt5", "--limit", "5")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        titles = [item["title"] for item in json.loads(completed.stdout)]
+        self.assertIn("IDrawingDoc::CreateSectionViewAt5", titles)
+        self.assertIn("searched for the literal text", completed.stderr)
+
+    def test_punctuation_and_operator_words_are_searched_as_text(self) -> None:
+        for text in ("section-view", "C#", "AND", "view OR", 'view "section', "IView.GetOutline()"):
+            with self.subTest(text=text):
+                completed = run_query(text, "--limit", "5")
+                self.assertEqual(0, completed.returncode, completed.stderr)
+                self.assertIsInstance(json.loads(completed.stdout), list)
+
+    def test_valid_fts5_syntax_is_still_honoured(self) -> None:
+        completed = run_query("title:section", "--limit", "50")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual("", completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertGreaterEqual(len(payload), 1)
+        self.assertTrue(all("section" in item["title"].lower() for item in payload))
+
     def test_missing_database_fails_without_creating_a_file(self) -> None:
         missing = ROOT / "tests" / "missing.sqlite"
         self.assertFalse(missing.exists())

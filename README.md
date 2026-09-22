@@ -33,6 +33,11 @@ python scripts/query_solidworks_drawing_api_db.py --workflow create-section-view
 python scripts/query_solidworks_drawing_api_db.py --coverage
 ```
 
+Free text is read as an [FTS5 query](https://www.sqlite.org/fts5.html#full_text_query_syntax),
+so `Create*`, `OR` and `title:section` work. Text that is not valid FTS5 syntax,
+such as `IDrawingDoc::CreateSectionViewAt5`, `section-view` or `C#`, is searched
+for literally instead, with a note on stderr; stdout stays JSON.
+
 The query CLI opens the delivered artifact in SQLite read-only mode. It never
 creates or modifies a database while searching.
 
